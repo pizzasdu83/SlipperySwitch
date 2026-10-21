@@ -14,7 +14,19 @@
 // MARK: Settings
 static BOOL enabled = NO;
 static BOOL global = NO;
-static BOOL joyConMode = NO;
+// 0 = jour/nuit (défaut), 1 = joycon, 2 = joycon2
+static NSInteger switchMode = 0;
+
+static Class SwitchClassForMode(void) {
+    switch (switchMode) {
+        case 1:
+            return [JoyConSwitch class];
+        case 2:
+            return [JoyCon2Switch class];
+        default:
+            return [DayNightSwitch class];
+    }
+}
 
 static void loadPrefs(void) {
 
@@ -23,9 +35,15 @@ static void loadPrefs(void) {
     enabled = [settings objectForKey:@"enabled"] ? [[settings objectForKey:@"enabled"] boolValue] : YES;
     global = [settings objectForKey:@"global"] ? [[settings objectForKey:@"global"] boolValue] : NO;
 
-    // "daynight" (défaut) ou "joycon" (mode Nintendo Switch)
+    // "daynight" (défaut), "joycon" ou "joycon2" (modes Nintendo Switch)
     NSString *mode = [settings objectForKey:@"mode"];
-    joyConMode = [mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"joycon"];
+    if ([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"joycon"]) {
+        switchMode = 1;
+    } else if ([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"joycon2"]) {
+        switchMode = 2;
+    } else {
+        switchMode = 0;
+    }
 }
 
 %ctor {
@@ -68,7 +86,7 @@ static void loadPrefs(void) {
     // Déjà en place : on ne refait que si la taille du UISwitch ou le mode ont changé
     UIView<DNSSwitchLike> *current = (UIView<DNSSwitchLike> *)self.dns_dayNightSwitch;
     if (current) {
-        Class wanted = joyConMode ? [JoyConSwitch class] : [DayNightSwitch class];
+        Class wanted = SwitchClassForMode();
         if (!CGSizeEqualToSize(current.bounds.size, size) || ![current isMemberOfClass:wanted]) {
             BOOL wasOn = current.on;
             [current removeFromSuperview];
@@ -108,7 +126,7 @@ static void loadPrefs(void) {
     // Même taille que le UISwitch natif (51x31 sur l'ancien, plus grand sur iOS 26)
     CGRect frame = CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height);
 
-    Class switchClass = joyConMode ? [JoyConSwitch class] : [DayNightSwitch class];
+    Class switchClass = SwitchClassForMode();
     UIView<DNSSwitchLike> *sub = [[switchClass alloc] initWithFrame:frame];
 
     sub.on = on;

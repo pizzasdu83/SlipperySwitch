@@ -1,6 +1,6 @@
 //
 //  JoyConSwitch.h
-//  Mode "Nintendo Switch" : le Joy-Con droit vient se clipser sur le gauche
+//  Mode "Nintendo Switch" : Joy-Con couchés, le plein vient se clipser sur le creux
 //
 
 #import <UIKit/UIKit.h>
@@ -12,12 +12,17 @@
 /// Appelé quand la valeur change (BOOL on, BOOL shouldNotifyChanged)
 @property (nonatomic, copy, nullable) void (^changeAction)(BOOL, BOOL);
 
-/// OFF = Joy-Con séparés, ON = Joy-Con droit collé au gauche
+/// OFF = Joy-Con séparés (plein à gauche), ON = Joy-Con plein clipsé sur le creux (à droite)
 @property (nonatomic, assign, getter=isOn) BOOL on;
 
 - (void)blockChangeActionAnimated:(BOOL)animated;
 - (void)unblockChangeAction;
 
 - (void)dns_disableAnimations;
+
+@end
+
+/// Variante "Joy-Con 2" : Joy-Con debout, les deux se rejoignent au milieu quand le switch est activé
+@interface JoyCon2Switch : JoyConSwitch
 
 @end

@@ -43,11 +43,13 @@
 			<array>
 				<string>Jour / Nuit</string>
 				<string>Joy-Con</string>
+				<string>Joy-Con 2</string>
 			</array>
 			<key>validValues</key>
 			<array>
 				<string>daynight</string>
 				<string>joycon</string>
+				<string>joycon2</string>
 			</array>
 		</dict>
 		<dict>

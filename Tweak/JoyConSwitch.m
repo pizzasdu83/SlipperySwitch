@@ -1,6 +1,11 @@
 //
 //  JoyConSwitch.m
-//  Mode "Nintendo Switch" : le Joy-Con droit vient se clipser sur le gauche
+//  Mode "Nintendo Switch" : les Joy-Con sont couchés (pivotés de 90°) et empilés.
+//  Le Joy-Con plein glisse de gauche à droite pour se clipser sur le Joy-Con
+//  "creux", qui reste fixe à droite.
+//
+//  JoyCon2Switch (en bas du fichier) : variante avec les Joy-Con debout, qui
+//  se rejoignent tous les deux au milieu de la piste quand le switch est activé.
 //
 //  Les formes viennent des SVG gauche.svg / droite.svg (logo Switch),
 //  converties en UIBezierPath normalisés (0..1) pour être redimensionnés
@@ -32,8 +37,11 @@ static UIColor *JCJoyConColor(void) {
 static const CGFloat kJCLeftAspect = 0.48439;
 static const CGFloat kJCRightAspect = 0.41617;
 
-/// écart entre les deux Joy-Con une fois "clipsés", en fraction de leur hauteur
-static const CGFloat kJCGapRatio = 0.09941;
+/// écart vertical entre les deux Joy-Con une fois clipsés, en fraction de leur largeur
+static const CGFloat kJCStackGap = 0.035;
+
+/// écart horizontal entre les deux Joy-Con debout (variante Joy-Con 2), en fraction de leur hauteur
+static const CGFloat kJCSideGap = 0.09941;
 
 // MARK: Formes
 
@@ -132,6 +140,11 @@ static UIBezierPath *JCRightPath(void) {
 
 @property(nonatomic, assign, getter=isOnBeforeDrag) BOOL onBeforeDrag;
 
+// Géométrie (surchargée par JoyCon2Switch)
+- (BOOL)rotatesJoyCons;
+- (CGRect)leftFrameForOn:(BOOL)on;
+- (CGRect)rightFrameForOn:(BOOL)on;
+
 @end
 
 @implementation JoyConSwitch {
@@ -145,42 +158,52 @@ static UIBezierPath *JCRightPath(void) {
 
 // MARK: Géométrie
 
-/// Marge verticale entre la piste et les Joy-Con
+/// Marge verticale entre la piste et la pile de Joy-Con
 - (CGFloat)jcMargin {
-    return self.bounds.size.height * 0.12;
+    return self.bounds.size.height * 0.05;
 }
 
 /// Marge horizontale (on tient compte des extrémités arrondies de la piste)
 - (CGFloat)jcInset {
-    return self.bounds.size.height * 0.20;
+    return self.bounds.size.height * 0.18;
 }
 
-/// Hauteur des Joy-Con
-- (CGFloat)jcHeight {
-    return self.bounds.size.height - [self jcMargin] * 2;
+/// Largeur commune des deux Joy-Con couchés : la pile (2 Joy-Con + écart)
+/// remplit toute la hauteur de la piste
+- (CGFloat)jcWidth {
+    CGFloat available = self.bounds.size.height - [self jcMargin] * 2;
+    return available / (kJCRightAspect + kJCLeftAspect + kJCStackGap);
 }
 
-/// Le Joy-Con gauche ne bouge jamais
-- (CGRect)leftFrame {
-    CGFloat jh = [self jcHeight];
-    return CGRectMake([self jcInset], [self jcMargin], jh * kJCLeftAspect, jh);
+/// Les Joy-Con sont couchés (pivotés de 90°)
+- (BOOL)rotatesJoyCons {
+    return YES;
 }
 
-/// Le Joy-Con droit : collé à droite quand OFF, collé au gauche quand ON
+/// Le Joy-Con "creux" ne bouge jamais : en bas à droite
+- (CGRect)leftFrameForOn:(BOOL)on {
+    CGFloat w = [self jcWidth];
+    CGFloat h = w * kJCLeftAspect;
+    return CGRectMake(self.bounds.size.width - [self jcInset] - w,
+                      self.bounds.size.height - [self jcMargin] - h, w, h);
+}
+
+/// Le Joy-Con plein : en haut à gauche quand OFF, clipsé au-dessus du creux (à droite) quand ON
 - (CGRect)rightFrameForOn:(BOOL)on {
-    CGFloat jh = [self jcHeight];
-    CGFloat rw = jh * kJCRightAspect;
-
-    CGFloat xOff = self.bounds.size.width - [self jcInset] - rw;
-    CGFloat xOn = CGRectGetMaxX([self leftFrame]) + jh * kJCGapRatio;
-
-    return CGRectMake(on ? MIN(xOn, xOff) : xOff, [self jcMargin], rw, jh);
+    CGFloat w = [self jcWidth];
+    CGFloat h = w * kJCRightAspect;
+    CGFloat x = on ? self.bounds.size.width - [self jcInset] - w : [self jcInset];
+    return CGRectMake(x, [self jcMargin], w, h);
 }
 
 // MARK: Initializers
 
 - (JCShapeView *)makeJoyConWithFrame:(CGRect)frame path:(UIBezierPath *)path {
-    // le chemin est normalisé (0..1) : on l'adapte à la taille réelle
+    // le chemin est normalisé (0..1) : on le couche si besoin (rotation de 90°
+    // anti-horaire dans le carré unité), puis on l'adapte à la taille réelle
+    if ([self rotatesJoyCons]) {
+        [path applyTransform:CGAffineTransformMake(0, -1, 1, 0, 0, 1)];
+    }
     [path applyTransform:CGAffineTransformMakeScale(frame.size.width, frame.size.height)];
 
     JCShapeView *v = [[JCShapeView alloc] initWithFrame:frame];
@@ -204,7 +227,7 @@ static UIBezierPath *JCRightPath(void) {
     self.layer.borderColor = JCBorderColor().CGColor;
     self.backgroundColor = JCTrackColor();
 
-    self.leftJoyCon = [self makeJoyConWithFrame:[self leftFrame] path:JCLeftPath()];
+    self.leftJoyCon = [self makeJoyConWithFrame:[self leftFrameForOn:NO] path:JCLeftPath()];
     self.rightJoyCon = [self makeJoyConWithFrame:[self rightFrameForOn:NO] path:JCRightPath()];
 
     [self addSubview:self.leftJoyCon];
@@ -288,7 +311,8 @@ static UIBezierPath *JCRightPath(void) {
     }
 
     BOOL shouldAnimate = (_shouldAnimate || self.isDragging) && _shouldAnimateImportant;
-    CGRect target = [self rightFrameForOn:on];
+    CGRect leftTarget = [self leftFrameForOn:on];
+    CGRect rightTarget = [self rightFrameForOn:on];
 
     if (shouldAnimate) {
         // petit effet de "clic" : le Joy-Con rebondit légèrement en arrivant
@@ -298,11 +322,13 @@ static UIBezierPath *JCRightPath(void) {
               initialSpringVelocity:0.6
                             options:UIViewAnimationOptionAllowUserInteraction
                          animations:^{
-                             self.rightJoyCon.frame = target;
+                             self.leftJoyCon.frame = leftTarget;
+                             self.rightJoyCon.frame = rightTarget;
                          }
                          completion:nil];
     } else {
-        self.rightJoyCon.frame = target;
+        self.leftJoyCon.frame = leftTarget;
+        self.rightJoyCon.frame = rightTarget;
     }
 }
 
@@ -317,6 +343,51 @@ static UIBezierPath *JCRightPath(void) {
 
 - (void)dns_disableAnimations {
     _shouldAnimateImportant = NO;
+}
+
+@end
+
+// MARK: JoyCon2Switch : Joy-Con debout, qui se rejoignent au milieu
+
+@implementation JoyCon2Switch
+
+- (BOOL)rotatesJoyCons {
+    return NO;
+}
+
+/// Le Joy-Con "creux" : à gauche quand OFF, au milieu (côté gauche de la paire) quand ON
+- (CGRect)leftFrameForOn:(BOOL)on {
+    CGFloat w = self.bounds.size.width;
+    CGFloat h = self.bounds.size.height;
+
+    CGFloat margin = h * 0.12;
+    CGFloat inset = h * 0.20;
+    CGFloat jh = h - margin * 2;
+
+    CGFloat lw = jh * kJCLeftAspect;
+    CGFloat rw = jh * kJCRightAspect;
+    CGFloat gap = jh * kJCSideGap;
+
+    CGFloat xCenter = (w - (lw + gap + rw)) / 2;
+    return CGRectMake(on ? xCenter : inset, margin, lw, jh);
+}
+
+/// Le Joy-Con "plein" : à droite quand OFF, au milieu (côté droit de la paire) quand ON
+- (CGRect)rightFrameForOn:(BOOL)on {
+    CGFloat w = self.bounds.size.width;
+    CGFloat h = self.bounds.size.height;
+
+    CGFloat margin = h * 0.12;
+    CGFloat inset = h * 0.20;
+    CGFloat jh = h - margin * 2;
+
+    CGFloat lw = jh * kJCLeftAspect;
+    CGFloat rw = jh * kJCRightAspect;
+    CGFloat gap = jh * kJCSideGap;
+
+    CGFloat xOff = w - inset - rw;
+    CGFloat xCenter = (w - (lw + gap + rw)) / 2 + lw + gap;
+    return CGRectMake(on ? xCenter : xOff, margin, rw, jh);
 }
 
 @end
