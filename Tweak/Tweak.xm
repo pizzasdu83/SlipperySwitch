@@ -1,4 +1,6 @@
 #import "DayNightSwitch.h"
+#import "JoyConSwitch.h"
+#import "DNSSwitchLike.h"
 
 #import <roothide.h>
 
@@ -12,6 +14,7 @@
 // MARK: Settings
 static BOOL enabled = NO;
 static BOOL global = NO;
+static BOOL joyConMode = NO;
 
 static void loadPrefs(void) {
 
@@ -19,6 +22,10 @@ static void loadPrefs(void) {
 
     enabled = [settings objectForKey:@"enabled"] ? [[settings objectForKey:@"enabled"] boolValue] : YES;
     global = [settings objectForKey:@"global"] ? [[settings objectForKey:@"global"] boolValue] : NO;
+
+    // "daynight" (défaut) ou "joycon" (mode Nintendo Switch)
+    NSString *mode = [settings objectForKey:@"mode"];
+    joyConMode = [mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"joycon"];
 }
 
 %ctor {
@@ -27,7 +34,8 @@ static void loadPrefs(void) {
 }
 
 @interface UISwitch (DayNightSwitch)
-@property (nonatomic, strong) DayNightSwitch *dns_dayNightSwitch;
+// UIView * (et non un type précis) car le switch peut être un DayNightSwitch ou un JoyConSwitch
+@property (nonatomic, strong) UIView *dns_dayNightSwitch;
 @property (nonatomic, strong) NSNumber *dns_bypass;
 - (UIImpactFeedbackGenerator *)_impactFeedbackGenerator;
 - (void)dns_setup;
@@ -37,7 +45,7 @@ static void loadPrefs(void) {
 
 %hook UISwitch
 
-%property (nonatomic, strong) DayNightSwitch *dns_dayNightSwitch;
+%property (nonatomic, strong) UIView *dns_dayNightSwitch;
 %property (nonatomic, strong) NSNumber *dns_bypass;
 
 - (void)layoutSubviews {
@@ -57,10 +65,11 @@ static void loadPrefs(void) {
         return;
     }
 
-    // Déjà en place : on ne refait que si la taille du UISwitch a changé
-    DayNightSwitch *current = self.dns_dayNightSwitch;
+    // Déjà en place : on ne refait que si la taille du UISwitch ou le mode ont changé
+    UIView<DNSSwitchLike> *current = (UIView<DNSSwitchLike> *)self.dns_dayNightSwitch;
     if (current) {
-        if (!CGSizeEqualToSize(current.bounds.size, size)) {
+        Class wanted = joyConMode ? [JoyConSwitch class] : [DayNightSwitch class];
+        if (!CGSizeEqualToSize(current.bounds.size, size) || ![current isMemberOfClass:wanted]) {
             BOOL wasOn = current.on;
             [current removeFromSuperview];
             self.dns_dayNightSwitch = nil;
@@ -98,7 +107,9 @@ static void loadPrefs(void) {
 - (void)dns_addSwitchWithOn:(BOOL)on {
     // Même taille que le UISwitch natif (51x31 sur l'ancien, plus grand sur iOS 26)
     CGRect frame = CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height);
-    DayNightSwitch *sub = [[DayNightSwitch alloc] initWithFrame:frame];
+
+    Class switchClass = joyConMode ? [JoyConSwitch class] : [DayNightSwitch class];
+    UIView<DNSSwitchLike> *sub = [[switchClass alloc] initWithFrame:frame];
 
     sub.on = on;
 
@@ -131,7 +142,7 @@ static void loadPrefs(void) {
 
 %new
 - (void)dns_hideNativeVisuals {
-    DayNightSwitch *sub = self.dns_dayNightSwitch;
+    UIView *sub = self.dns_dayNightSwitch;
     if (!sub) {
         return;
     }
@@ -160,9 +171,10 @@ static void loadPrefs(void) {
         return;
     }
 
-    [self.dns_dayNightSwitch blockChangeActionAnimated:arg2];
-    [self.dns_dayNightSwitch setOn:arg1];
-    [self.dns_dayNightSwitch unblockChangeAction];
+    UIView<DNSSwitchLike> *sub = (UIView<DNSSwitchLike> *)self.dns_dayNightSwitch;
+    [sub blockChangeActionAnimated:arg2];
+    [sub setOn:arg1];
+    [sub unblockChangeAction];
 }
 
 %end
@@ -189,8 +201,11 @@ static UIView *FindViewOfClass(UIView *view, Class cls) {
     %orig;
 
     UIView *theView = FindViewOfClass(self.contentView, [DayNightSwitch class]);
+    if (!theView) {
+        theView = FindViewOfClass(self.contentView, [JoyConSwitch class]);
+    }
     if ([theView respondsToSelector:@selector(dns_disableAnimations)]) {
-        [(DayNightSwitch *)theView dns_disableAnimations];
+        [(UIView<DNSSwitchLike> *)theView dns_disableAnimations];
     }
 }
 

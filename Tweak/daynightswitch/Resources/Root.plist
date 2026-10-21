@@ -23,6 +23,34 @@
 			<string>Enabled</string>
 		</dict>
 		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Style</string>
+			<key>footerText</key>
+			<string>Nintendo Switch</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<string>daynight</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>mode</string>
+			<key>validTitles</key>
+			<array>
+				<string>Jour / Nuit</string>
+				<string>Joy-Con</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>daynight</string>
+				<string>joycon</string>
+			</array>
+		</dict>
+		<dict>
 			<key>action</key>
 			<string>respring</string>
 			<key>cell</key>
@@ -45,7 +73,7 @@
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>Fixed with ♥ by OwnGoal Studio</string>
+			<string>Fixed with ♥ by SaaS</string>
 			<key>action</key>
 			<string>support</string>
 		</dict>
@@ -57,48 +85,34 @@
 			<string>About</string>
 			<key>footerText</key>
 			<string>Copyright ⓒ 2016 Finn Gaida
-Copyright ⓒ 2025 OwnGoal Studio</string>
+Copyright ⓒ 2025 OwnGoal Studio
+Copyright ⓒ 2026 SaaS</string>
 		</dict>
 		<dict>
 			<key>action</key>
-			<string>twitter</string>
+			<string>mysource</string>
 			<key>cell</key>
 			<string>PSButtonCell</string>
-			<key>icon</key>
-			<string>twitter.png</string>
 			<key>label</key>
-			<string>Follow me on Twitter (@fga)</string>
+			<string>Source code</string>
 		</dict>
 		<dict>
 			<key>action</key>
-			<string>github</string>
+			<string>asource</string>
 			<key>cell</key>
 			<string>PSButtonCell</string>
-			<key>icon</key>
-			<string>github.png</string>
 			<key>label</key>
-			<string>Follow me on GitHub</string>
+			<string>The version I fixed</string>
 		</dict>
 		<dict>
 			<key>action</key>
-			<string>mail</string>
-			<key>icon</key>
-			<string>mail.png</string>
+			<string>thesource</string>
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>Send a feature request</string>
+			<string>The original project</string>
 		</dict>
-		<dict>
-			<key>action</key>
-			<string>paypal</string>
-			<key>icon</key>
-			<string>paypal.png</string>
-			<key>cell</key>
-			<string>PSButtonCell</string>
-			<key>label</key>
-			<string>Send a donation</string>
-		</dict>
+
 	</array>
 	<key>title</key>
 	<string>DayNightSwitch</string>

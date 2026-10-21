@@ -8,7 +8,9 @@
 
 #import <UIKit/UIKit.h>
 
-@interface DayNightSwitch : UIView
+#import "DNSSwitchLike.h"
+
+@interface DayNightSwitch : UIView <DNSSwitchLike>
 
 /// Called as soon as the value changes (probably because the user tapped it)
 @property (nonatomic, copy, nullable) void (^changeAction)(BOOL, BOOL);
