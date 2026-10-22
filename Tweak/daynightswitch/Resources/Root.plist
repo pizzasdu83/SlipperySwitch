@@ -80,7 +80,7 @@
 			<key>cellClass</key>
 			<string>DNSColorCell</string>
 			<key>default</key>
-			<string>#34C759</string>
+			<string>#0000FF</string>
 			<key>defaults</key>
 			<string>de.finngaida.daynightswitch</string>
 			<key>key</key>
@@ -94,13 +94,73 @@
 			<key>cellClass</key>
 			<string>DNSColorCell</string>
 			<key>default</key>
-			<string>#00C7BE</string>
+			<string>#FF0000</string>
 			<key>defaults</key>
 			<string>de.finngaida.daynightswitch</string>
 			<key>key</key>
 			<string>onColor2</string>
 			<key>label</key>
 			<string>Color 2</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<string>linear</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>id</key>
+			<string>onGradientType</string>
+			<key>key</key>
+			<string>onGradientType</string>
+			<key>validTitles</key>
+			<array>
+				<string>Linear</string>
+				<string>Radial</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>linear</string>
+				<string>radial</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>id</key>
+			<string>onGradientAngle</string>
+			<key>key</key>
+			<string>onGradientAngle</string>
+			<key>label</key>
+			<string>Angle</string>
+			<key>validTitles</key>
+			<array>
+				<string>0° →</string>
+				<string>45° ↘</string>
+				<string>90° ↓</string>
+				<string>135° ↙</string>
+				<string>180° ←</string>
+				<string>225° ↖</string>
+				<string>270° ↑</string>
+				<string>315° ↗</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>45</integer>
+				<integer>90</integer>
+				<integer>135</integer>
+				<integer>180</integer>
+				<integer>225</integer>
+				<integer>270</integer>
+				<integer>315</integer>
+			</array>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -126,7 +186,7 @@
 			<key>cellClass</key>
 			<string>DNSColorCell</string>
 			<key>default</key>
-			<string>#E9E9EA</string>
+			<string>#FF0000</string>
 			<key>defaults</key>
 			<string>de.finngaida.daynightswitch</string>
 			<key>key</key>
@@ -140,13 +200,73 @@
 			<key>cellClass</key>
 			<string>DNSColorCell</string>
 			<key>default</key>
-			<string>#C7C7CC</string>
+			<string>#00FF00</string>
 			<key>defaults</key>
 			<string>de.finngaida.daynightswitch</string>
 			<key>key</key>
 			<string>offColor2</string>
 			<key>label</key>
 			<string>Color 2</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<string>linear</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>id</key>
+			<string>offGradientType</string>
+			<key>key</key>
+			<string>offGradientType</string>
+			<key>validTitles</key>
+			<array>
+				<string>Linear</string>
+				<string>Radial</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>linear</string>
+				<string>radial</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<integer>0</integer>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>id</key>
+			<string>offGradientAngle</string>
+			<key>key</key>
+			<string>offGradientAngle</string>
+			<key>label</key>
+			<string>Angle</string>
+			<key>validTitles</key>
+			<array>
+				<string>0° →</string>
+				<string>45° ↘</string>
+				<string>90° ↓</string>
+				<string>135° ↙</string>
+				<string>180° ←</string>
+				<string>225° ↖</string>
+				<string>270° ↑</string>
+				<string>315° ↗</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>45</integer>
+				<integer>90</integer>
+				<integer>135</integer>
+				<integer>180</integer>
+				<integer>225</integer>
+				<integer>270</integer>
+				<integer>315</integer>
+			</array>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -186,13 +306,73 @@
 			<key>cellClass</key>
 			<string>DNSColorCell</string>
 			<key>default</key>
-			<string>#E5E5EA</string>
+			<string>#AAE5A4</string>
 			<key>defaults</key>
 			<string>de.finngaida.daynightswitch</string>
 			<key>key</key>
 			<string>knobColor2</string>
 			<key>label</key>
 			<string>Color 2</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSegmentCell</string>
+			<key>default</key>
+			<string>linear</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>id</key>
+			<string>knobGradientType</string>
+			<key>key</key>
+			<string>knobGradientType</string>
+			<key>validTitles</key>
+			<array>
+				<string>Linear</string>
+				<string>Radial</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<string>linear</string>
+				<string>radial</string>
+			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSLinkListCell</string>
+			<key>default</key>
+			<integer>90</integer>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			<key>id</key>
+			<string>knobGradientAngle</string>
+			<key>key</key>
+			<string>knobGradientAngle</string>
+			<key>label</key>
+			<string>Angle</string>
+			<key>validTitles</key>
+			<array>
+				<string>0° →</string>
+				<string>45° ↘</string>
+				<string>90° ↓</string>
+				<string>135° ↙</string>
+				<string>180° ←</string>
+				<string>225° ↖</string>
+				<string>270° ↑</string>
+				<string>315° ↗</string>
+			</array>
+			<key>validValues</key>
+			<array>
+				<integer>0</integer>
+				<integer>45</integer>
+				<integer>90</integer>
+				<integer>135</integer>
+				<integer>180</integer>
+				<integer>225</integer>
+				<integer>270</integer>
+				<integer>315</integer>
+			</array>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -265,6 +445,6 @@ Copyright ⓒ 2026 SaaS</string>
 
 	</array>
 	<key>title</key>
-	<string>DayNightSwitch</string>
+	<string>Slippery Switch</string>
 </dict>
 </plist>
