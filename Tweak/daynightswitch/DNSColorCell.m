@@ -19,6 +19,8 @@
 
 @implementation DNSColorCell {
     UIColorWell *_colorWell;
+    /// Code hexadécimal affiché à gauche du sélecteur
+    UILabel *_hexLabel;
 }
 
 /// "#RRGGBB" → UIColor (gris si la valeur est invalide)
@@ -61,6 +63,15 @@ static NSString *DNSCellHexFromColor(UIColor *color) {
         _colorWell.supportsAlpha = NO;
         [_colorWell addTarget:self action:@selector(colorDidChange:) forControlEvents:UIControlEventValueChanged];
 
+        // Le code hex est affiché par nous (le texte de valeur des Réglages est caché, voir layoutSubviews)
+        _hexLabel = [[UILabel alloc] init];
+        _hexLabel.textAlignment = NSTextAlignmentRight;
+        _hexLabel.textColor = [UIColor secondaryLabelColor];
+        _hexLabel.font = [UIFont monospacedSystemFontOfSize:15 weight:UIFontWeightRegular];
+        _hexLabel.adjustsFontSizeToFitWidth = YES;
+        _hexLabel.minimumScaleFactor = 0.7;
+        [self.contentView addSubview:_hexLabel];
+
         // Le sélecteur est placé dans le contentView (et non en accessoryView) :
         // les Réglages réinitialisent l'accessoryView quand ils recyclent la cellule
         [self.contentView addSubview:_colorWell];
@@ -92,6 +103,21 @@ static NSString *DNSCellHexFromColor(UIColor *color) {
     CGFloat size = 34;
     CGRect bounds = self.contentView.bounds;
     _colorWell.frame = CGRectMake(CGRectGetMaxX(bounds) - size - 20, (CGRectGetHeight(bounds) - size) / 2, size, size);
+
+    // code hex juste à gauche du sélecteur
+    CGFloat hexWidth = 90;
+    _hexLabel.frame = CGRectMake(CGRectGetMinX(_colorWell.frame) - 10 - hexWidth, 0, hexWidth, CGRectGetHeight(bounds));
+
+    // cache le texte de valeur ajouté par les Réglages (il passait sous le sélecteur et était coupé)
+    NSMutableArray<UIView *> *candidates = [NSMutableArray arrayWithArray:self.contentView.subviews];
+    [candidates addObjectsFromArray:self.subviews];
+    for (UIView *view in candidates) {
+        if ([view isKindOfClass:[UILabel class]] && view != self.textLabel && view != _hexLabel) {
+            view.hidden = YES;
+        }
+    }
+
+    [self.contentView bringSubviewToFront:_hexLabel];
     [self.contentView bringSubviewToFront:_colorWell];
 }
 
@@ -101,7 +127,9 @@ static NSString *DNSCellHexFromColor(UIColor *color) {
         return;
     }
 
-    _colorWell.selectedColor = DNSCellColorFromHex([controller readPreferenceValue:specifier]);
+    UIColor *color = DNSCellColorFromHex([controller readPreferenceValue:specifier]);
+    _colorWell.selectedColor = color;
+    _hexLabel.text = DNSCellHexFromColor(color);
 }
 
 - (void)colorDidChange:(UIColorWell *)sender {
@@ -111,7 +139,9 @@ static NSString *DNSCellHexFromColor(UIColor *color) {
         return;
     }
 
-    [controller setPreferenceValue:DNSCellHexFromColor(sender.selectedColor) specifier:specifier];
+    NSString *hex = DNSCellHexFromColor(sender.selectedColor);
+    _hexLabel.text = hex;
+    [controller setPreferenceValue:hex specifier:specifier];
 }
 
 @end

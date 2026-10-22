@@ -10,69 +10,126 @@ static NSArray<NSString *> *GradientPrefixes(void) {
     return @[ @"on", @"off", @"knob" ];
 }
 
+/// "onColor1" → "on", "knobGradientAngle" → "knob"... (nil si ce n'est pas un réglage de couleur)
+static NSString *PrefixForKey(NSString *key) {
+    for (NSString *prefix in GradientPrefixes()) {
+        if ([key hasPrefix:[prefix stringByAppendingString:@"Gradient"]] ||
+            [key hasPrefix:[prefix stringByAppendingString:@"Color"]]) {
+            return prefix;
+        }
+    }
+    return nil;
+}
+
 @implementation FGARootListController {
-    /// Les menus d'angle, gardés ici pour pouvoir les remettre quand on repasse en "linéaire"
-    NSMutableDictionary<NSString *, PSSpecifier *> *_angleSpecifiers;
+    /// Tous les réglages du plist, dans l'ordre (la liste affichée en est un sous-ensemble)
+    NSArray<PSSpecifier *> *_allSpecifiers;
+    /// Les mêmes, retrouvables par leur clé de préférence
+    NSMutableDictionary<NSString *, PSSpecifier *> *_specifiersByKey;
 }
 
 - (NSArray *)specifiers {
     if (!_specifiers) {
-        NSArray *loaded = [self loadSpecifiersFromPlistName:@"Root" target:self];
+        if (!_allSpecifiers) {
+            _allSpecifiers = [self loadSpecifiersFromPlistName:@"Root" target:self];
 
-        _angleSpecifiers = [NSMutableDictionary dictionary];
-        NSMutableArray *visible = [loaded mutableCopy];
-
-        for (NSString *prefix in GradientPrefixes()) {
-            NSString *angleID = [prefix stringByAppendingString:@"GradientAngle"];
-            NSString *typeID = [prefix stringByAppendingString:@"GradientType"];
-
-            PSSpecifier *angle = nil;
-            PSSpecifier *type = nil;
-            for (PSSpecifier *specifier in loaded) {
-                if ([specifier.identifier isEqualToString:angleID]) {
-                    angle = specifier;
-                } else if ([specifier.identifier isEqualToString:typeID]) {
-                    type = specifier;
+            _specifiersByKey = [NSMutableDictionary dictionary];
+            for (PSSpecifier *specifier in _allSpecifiers) {
+                NSString *key = [specifier propertyForKey:@"key"];
+                if (key) {
+                    _specifiersByKey[key] = specifier;
                 }
-            }
-
-            if (!angle || !type) {
-                continue;
-            }
-
-            _angleSpecifiers[angleID] = angle;
-
-            // au chargement : pas de menu d'angle si le dégradé est déjà en mode radial
-            if ([[self readPreferenceValue:type] isEqual:@"radial"]) {
-                [visible removeObject:angle];
             }
         }
 
-        _specifiers = visible;
+        _specifiers = [self visibleSpecifiers];
     }
 
     return _specifiers;
 }
 
-/// Quand on change le type de dégradé : cache le menu d'angle en radial, le remet en linéaire
+/// Valeur actuelle d'une préférence (ou sa valeur par défaut)
+- (id)currentValueForKey:(NSString *)key {
+    PSSpecifier *specifier = _specifiersByKey[key];
+    return specifier ? [self readPreferenceValue:specifier] : nil;
+}
+
+/// Les réglages à afficher selon l'état actuel :
+/// - les réglages de couleur : seulement en mode "Simple"
+/// - "Color 2" et le type de dégradé : seulement si "Gradient" est activé
+/// - le menu d'angle : seulement si "Gradient" est activé et que le type est "Linear"
+- (NSArray *)visibleSpecifiers {
+    BOOL simple = [[self currentValueForKey:@"mode"] isEqual:@"simple"];
+
+    NSMutableArray *visible = [NSMutableArray array];
+
+    for (NSUInteger i = 0; i < _allSpecifiers.count; i++) {
+        PSSpecifier *specifier = _allSpecifiers[i];
+        NSString *key = [specifier propertyForKey:@"key"];
+
+        // le titre de groupe (sans clé) appartient à la partie dont le premier réglage suit
+        NSString *prefix = key ? PrefixForKey(key) : nil;
+        if (!key && i + 1 < _allSpecifiers.count) {
+            NSString *nextKey = [_allSpecifiers[i + 1] propertyForKey:@"key"];
+            prefix = nextKey ? PrefixForKey(nextKey) : nil;
+        }
+
+        // pas un réglage de couleur : toujours affiché
+        if (!prefix) {
+            [visible addObject:specifier];
+            continue;
+        }
+
+        if (!simple) {
+            continue;
+        }
+
+        // le titre de groupe, "Gradient" et "Color" : toujours affichés en mode Simple
+        if (!key || [key isEqualToString:[prefix stringByAppendingString:@"Gradient"]] ||
+            [key isEqualToString:[prefix stringByAppendingString:@"Color1"]]) {
+            [visible addObject:specifier];
+            continue;
+        }
+
+        BOOL gradient = [[self currentValueForKey:[prefix stringByAppendingString:@"Gradient"]] boolValue];
+        if (!gradient) {
+            continue;
+        }
+
+        if ([key isEqualToString:[prefix stringByAppendingString:@"GradientAngle"]]) {
+            BOOL radial = [[self currentValueForKey:[prefix stringByAppendingString:@"GradientType"]] isEqual:@"radial"];
+            if (radial) {
+                continue;
+            }
+        }
+
+        [visible addObject:specifier];
+    }
+
+    return visible;
+}
+
+/// Recalcule ce qui est affiché
+- (void)refreshVisibleSpecifiers {
+    _specifiers = [self visibleSpecifiers];
+    [self reloadSpecifiers];
+}
+
+/// Quand le style, un interrupteur "Gradient" ou un type de dégradé change : met à jour la liste
 - (void)setPreferenceValue:(id)value specifier:(PSSpecifier *)specifier {
     [super setPreferenceValue:value specifier:specifier];
 
     NSString *key = [specifier propertyForKey:@"key"];
-    if (![key hasSuffix:@"GradientType"]) {
+    if (!key) {
         return;
     }
 
-    NSString *prefix = [key substringToIndex:key.length - @"GradientType".length];
-    NSString *angleID = [prefix stringByAppendingString:@"GradientAngle"];
-
-    PSSpecifier *shownAngle = [self specifierForID:angleID];
-    BOOL radial = [value isEqual:@"radial"];
-
-    if (radial && shownAngle) {
-        [self removeSpecifier:shownAngle animated:YES];
-    } else if (!radial && !shownAngle && _angleSpecifiers[angleID]) {
-        [self insertSpecifier:_angleSpecifiers[angleID] afterSpecifierID:key animated:YES];
+    if ([key isEqualToString:@"mode"] || [key hasSuffix:@"GradientType"] ||
+        ([key hasSuffix:@"Gradient"] && PrefixForKey(key))) {
+        // un tour de boucle plus tard, pour ne pas recharger la liste en plein clic sur le contrôle
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self refreshVisibleSpecifiers];
+        });
     }
 }
 
