@@ -342,11 +342,13 @@ static UIBezierPath *JCRightPath(void) {
     if (self.changeAction && !_shouldSkipChangeAction) {
         self.changeAction(on, !self.isMoved);
 
-        // seulement quand c'est l'utilisateur qui actionne le switch (pas pour un changement
-        // fait par le système ni à la création du switch)
-        SystemSoundID soundID = JCClickSoundID();
-        if (soundID != 0) {
-            AudioServicesPlaySystemSound(soundID);
+        // seulement quand l'utilisateur ACTIVE le switch (pas à la désactivation, ni pour un
+        // changement fait par le système, ni à la création du switch)
+        if (on) {
+            SystemSoundID soundID = JCClickSoundID();
+            if (soundID != 0) {
+                AudioServicesPlaySystemSound(soundID);
+            }
         }
     }
 
