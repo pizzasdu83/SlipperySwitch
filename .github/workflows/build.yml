@@ -1,4 +1,4 @@
-name: Build DayNightSwitch
+name: Switching styles
 
 on:
   push:
