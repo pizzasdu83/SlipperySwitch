@@ -61,7 +61,9 @@ static NSString *DNSCellHexFromColor(UIColor *color) {
         _colorWell.supportsAlpha = NO;
         [_colorWell addTarget:self action:@selector(colorDidChange:) forControlEvents:UIControlEventValueChanged];
 
-        self.accessoryView = _colorWell;
+        // Le sélecteur est placé dans le contentView (et non en accessoryView) :
+        // les Réglages réinitialisent l'accessoryView quand ils recyclent la cellule
+        [self.contentView addSubview:_colorWell];
         self.selectionStyle = UITableViewCellSelectionStyleNone;
 
         [self loadColorFromSpecifier:specifier];
@@ -72,6 +74,25 @@ static NSString *DNSCellHexFromColor(UIColor *color) {
 - (void)refreshCellContentsWithSpecifier:(PSSpecifier *)specifier {
     [super refreshCellContentsWithSpecifier:specifier];
     [self loadColorFromSpecifier:specifier];
+    [self setNeedsLayout];
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+
+    if (!_colorWell) {
+        return;
+    }
+
+    // s'assure que le sélecteur est toujours là (cellule recyclée) et le place à droite
+    if (_colorWell.superview != self.contentView) {
+        [self.contentView addSubview:_colorWell];
+    }
+
+    CGFloat size = 34;
+    CGRect bounds = self.contentView.bounds;
+    _colorWell.frame = CGRectMake(CGRectGetMaxX(bounds) - size - 20, (CGRectGetHeight(bounds) - size) / 2, size, size);
+    [self.contentView bringSubviewToFront:_colorWell];
 }
 
 - (void)loadColorFromSpecifier:(PSSpecifier *)specifier {
