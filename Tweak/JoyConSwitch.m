@@ -14,6 +14,9 @@
 
 #import "JoyConSwitch.h"
 
+#import <AudioToolbox/AudioToolbox.h>
+#import <roothide.h>
+
 // MARK: Réglages visuels (modifiables)
 
 /// Fond de la piste (blanc par défaut)
@@ -42,6 +45,36 @@ static const CGFloat kJCStackGap = 0.035;
 
 /// écart horizontal entre les deux Joy-Con debout (variante Joy-Con 2), en fraction de leur hauteur
 static const CGFloat kJCSideGap = 0.09941;
+
+// MARK: Bruit de clic
+
+/// Charge le son une seule fois : switch-sound.wav (ou, à défaut, switch-sound.mp3)
+/// dans /var/mobile/Library/Application Support/DayNightSwitch/
+static SystemSoundID JCClickSoundID(void) {
+    static SystemSoundID soundID = 0;
+    static dispatch_once_t onceToken;
+
+    dispatch_once(&onceToken, ^{
+        NSArray<NSString *> *paths = @[
+            [NSString stringWithUTF8String:jbroot("/var/mobile/Library/Application Support/DayNightSwitch/switch-sound.wav")],
+            [NSString stringWithUTF8String:jbroot("/var/mobile/Library/Application Support/DayNightSwitch/switch-sound.mp3")],
+        ];
+
+        for (NSString *path in paths) {
+            if (![[NSFileManager defaultManager] fileExistsAtPath:path]) {
+                continue;
+            }
+
+            SystemSoundID newID = 0;
+            if (AudioServicesCreateSystemSoundID((__bridge CFURLRef)[NSURL fileURLWithPath:path], &newID) == kAudioServicesNoError) {
+                soundID = newID;
+                break;
+            }
+        }
+    });
+
+    return soundID;
+}
 
 // MARK: Formes
 
@@ -308,6 +341,13 @@ static UIBezierPath *JCRightPath(void) {
     // call the action closure
     if (self.changeAction && !_shouldSkipChangeAction) {
         self.changeAction(on, !self.isMoved);
+
+        // seulement quand c'est l'utilisateur qui actionne le switch (pas pour un changement
+        // fait par le système ni à la création du switch)
+        SystemSoundID soundID = JCClickSoundID();
+        if (soundID != 0) {
+            AudioServicesPlaySystemSound(soundID);
+        }
     }
 
     BOOL shouldAnimate = (_shouldAnimate || self.isDragging) && _shouldAnimateImportant;

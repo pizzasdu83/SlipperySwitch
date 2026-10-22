@@ -4,10 +4,12 @@
 //  (unie ou dégradé) configurable dans les réglages
 //
 //  Clés de préférences (couleurs au format "#RRGGBB") :
-//    onColor1   onColor2   onGradient     → piste activée
-//    offColor1  offColor2  offGradient    → piste désactivée
-//    knobColor1 knobColor2 knobGradient   → bouton
-//  Dégradé : de gauche à droite pour les pistes, de haut en bas pour le bouton.
+//    onColor1   onColor2   onGradient   onGradientType   onGradientAngle     → piste activée
+//    offColor1  offColor2  offGradient  offGradientType  offGradientAngle    → piste désactivée
+//    knobColor1 knobColor2 knobGradient knobGradientType knobGradientAngle   → bouton
+//  Type de dégradé : "linear" (défaut) ou "radial" (couleur 1 au centre, couleur 2 sur les bords).
+//  Angle (dégradé linéaire) en degrés : 0 = de gauche à droite, 90 = de haut en bas,
+//  180 = de droite à gauche, 270 = de bas en haut.
 //
 
 #import "SimpleSwitch.h"
@@ -18,6 +20,8 @@
 @property(nonatomic, strong) UIColor *color1;
 @property(nonatomic, strong) UIColor *color2;
 @property(nonatomic, assign) BOOL gradient;
+@property(nonatomic, assign) BOOL radial;
+@property(nonatomic, assign) CGFloat angle;
 @end
 
 @implementation DNSFill
@@ -52,13 +56,20 @@ static UIColor *DNSColorFromHex(id value, NSString *fallback) {
     return [UIColor grayColor];
 }
 
-static DNSFill *DNSMakeFill(NSDictionary *prefs, NSString *prefix, NSString *default1, NSString *default2) {
+static DNSFill *DNSMakeFill(NSDictionary *prefs, NSString *prefix, NSString *default1, NSString *default2,
+                            CGFloat defaultAngle) {
     DNSFill *fill = [[DNSFill alloc] init];
     fill.color1 = DNSColorFromHex([prefs objectForKey:[prefix stringByAppendingString:@"Color1"]], default1);
     fill.color2 = DNSColorFromHex([prefs objectForKey:[prefix stringByAppendingString:@"Color2"]], default2);
 
     id gradient = [prefs objectForKey:[prefix stringByAppendingString:@"Gradient"]];
     fill.gradient = [gradient respondsToSelector:@selector(boolValue)] && [gradient boolValue];
+
+    id type = [prefs objectForKey:[prefix stringByAppendingString:@"GradientType"]];
+    fill.radial = [type isKindOfClass:[NSString class]] && [type isEqualToString:@"radial"];
+
+    id angle = [prefs objectForKey:[prefix stringByAppendingString:@"GradientAngle"]];
+    fill.angle = [angle respondsToSelector:@selector(doubleValue)] ? [angle doubleValue] : defaultAngle;
     return fill;
 }
 
@@ -66,10 +77,12 @@ static DNSFill *DNSMakeFill(NSDictionary *prefs, NSString *prefix, NSString *def
 
 @interface DNSGradientView : UIView
 @property(nonatomic, readonly) CAGradientLayer *gradientLayer;
-- (void)applyFill:(DNSFill *)fill vertical:(BOOL)vertical;
+- (void)applyFill:(DNSFill *)fill;
 @end
 
-@implementation DNSGradientView
+@implementation DNSGradientView {
+    DNSFill *_fill;
+}
 
 + (Class)layerClass {
     return [CAGradientLayer class];
@@ -79,13 +92,57 @@ static DNSFill *DNSMakeFill(NSDictionary *prefs, NSString *prefix, NSString *def
     return (CAGradientLayer *)self.layer;
 }
 
-- (void)applyFill:(DNSFill *)fill vertical:(BOOL)vertical {
+- (void)applyFill:(DNSFill *)fill {
+    _fill = fill;
+    [self refreshGradient];
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    [self refreshGradient];
+}
+
+- (void)refreshGradient {
+    DNSFill *fill = _fill;
+    if (!fill) {
+        return;
+    }
+
+    CAGradientLayer *layer = self.gradientLayer;
+
     // couleur unie = dégradé avec deux fois la même couleur
     UIColor *second = fill.gradient ? fill.color2 : fill.color1;
+    layer.colors = @[ (__bridge id)fill.color1.CGColor, (__bridge id)second.CGColor ];
 
-    self.gradientLayer.colors = @[ (__bridge id)fill.color1.CGColor, (__bridge id)second.CGColor ];
-    self.gradientLayer.startPoint = vertical ? CGPointMake(0.5, 0) : CGPointMake(0, 0.5);
-    self.gradientLayer.endPoint = vertical ? CGPointMake(0.5, 1) : CGPointMake(1, 0.5);
+    if (fill.gradient && fill.radial) {
+        // radial : couleur 1 au centre, couleur 2 sur les bords
+        layer.type = kCAGradientLayerRadial;
+        layer.startPoint = CGPointMake(0.5, 0.5);
+        layer.endPoint = CGPointMake(1, 1);
+        return;
+    }
+
+    layer.type = kCAGradientLayerAxial;
+
+    CGFloat w = self.bounds.size.width;
+    CGFloat h = self.bounds.size.height;
+    if (!fill.gradient || w < 1 || h < 1) {
+        layer.startPoint = CGPointMake(0, 0.5);
+        layer.endPoint = CGPointMake(1, 0.5);
+        return;
+    }
+
+    // dégradé linéaire d'angle donné : la ligne du dégradé passe par le centre et sa longueur
+    // est calculée pour que les coins reçoivent exactement la première / dernière couleur
+    CGFloat radians = fill.angle * M_PI / 180.0;
+    CGFloat dx = cos(radians);
+    CGFloat dy = sin(radians);
+    CGFloat length = fabs(w * dx) + fabs(h * dy);
+
+    CGFloat cx = w / 2;
+    CGFloat cy = h / 2;
+    layer.startPoint = CGPointMake((cx - dx * length / 2) / w, (cy - dy * length / 2) / h);
+    layer.endPoint = CGPointMake((cx + dx * length / 2) / w, (cy + dy * length / 2) / h);
 }
 
 @end
@@ -118,9 +175,9 @@ static DNSFill *DNSMakeFill(NSDictionary *prefs, NSString *prefix, NSString *def
 @synthesize on = _on;
 
 + (void)applyPrefs:(NSDictionary *)prefs {
-    sOnFill = DNSMakeFill(prefs, @"on", @"#34C759", @"#00C7BE");
-    sOffFill = DNSMakeFill(prefs, @"off", @"#E9E9EA", @"#C7C7CC");
-    sKnobFill = DNSMakeFill(prefs, @"knob", @"#FFFFFF", @"#E5E5EA");
+    sOnFill = DNSMakeFill(prefs, @"on", @"#34C759", @"#00C7BE", 0);
+    sOffFill = DNSMakeFill(prefs, @"off", @"#E9E9EA", @"#C7C7CC", 0);
+    sKnobFill = DNSMakeFill(prefs, @"knob", @"#FFFFFF", @"#E5E5EA", 90);
 }
 
 // MARK: Géométrie
@@ -159,13 +216,13 @@ static DNSFill *DNSMakeFill(NSDictionary *prefs, NSString *prefix, NSString *def
     // piste désactivée (toujours dessous) et piste activée (en fondu par-dessus)
     self.offView = [[DNSGradientView alloc] initWithFrame:self.bounds];
     self.offView.userInteractionEnabled = NO;
-    [self.offView applyFill:sOffFill vertical:NO];
+    [self.offView applyFill:sOffFill];
     [self addSubview:self.offView];
 
     self.onView = [[DNSGradientView alloc] initWithFrame:self.bounds];
     self.onView.userInteractionEnabled = NO;
     self.onView.alpha = 0;
-    [self.onView applyFill:sOnFill vertical:NO];
+    [self.onView applyFill:sOnFill];
     [self addSubview:self.onView];
 
     // bouton : un conteneur (pour l'ombre) qui porte une vue ronde avec la couleur / le dégradé
@@ -183,7 +240,7 @@ static DNSFill *DNSMakeFill(NSDictionary *prefs, NSString *prefix, NSString *def
     self.knobView.userInteractionEnabled = NO;
     self.knobView.layer.cornerRadius = d / 2;
     self.knobView.layer.masksToBounds = YES;
-    [self.knobView applyFill:sKnobFill vertical:YES];
+    [self.knobView applyFill:sKnobFill];
 
     [self.knobContainer addSubview:self.knobView];
     [self addSubview:self.knobContainer];
