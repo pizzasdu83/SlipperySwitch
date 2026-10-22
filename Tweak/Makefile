@@ -10,6 +10,7 @@ TWEAK_NAME := DayNightSwitch
 DayNightSwitch_FILES += Tweak.xm
 DayNightSwitch_FILES += DayNightSwitch.m
 DayNightSwitch_FILES += JoyConSwitch.m
+DayNightSwitch_FILES += SimpleSwitch.m
 DayNightSwitch_CFLAGS += -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk

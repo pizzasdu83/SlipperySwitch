@@ -1,5 +1,6 @@
 #import "DayNightSwitch.h"
 #import "JoyConSwitch.h"
+#import "SimpleSwitch.h"
 #import "DNSSwitchLike.h"
 
 #import <roothide.h>
@@ -14,7 +15,7 @@
 // MARK: Settings
 static BOOL enabled = NO;
 static BOOL global = NO;
-// 0 = jour/nuit (défaut), 1 = joycon, 2 = joycon2
+// 0 = jour/nuit (défaut), 1 = joycon, 2 = joycon2, 3 = simple (couleurs perso)
 static NSInteger switchMode = 0;
 
 static Class SwitchClassForMode(void) {
@@ -23,6 +24,8 @@ static Class SwitchClassForMode(void) {
             return [JoyConSwitch class];
         case 2:
             return [JoyCon2Switch class];
+        case 3:
+            return [SimpleSwitch class];
         default:
             return [DayNightSwitch class];
     }
@@ -35,15 +38,20 @@ static void loadPrefs(void) {
     enabled = [settings objectForKey:@"enabled"] ? [[settings objectForKey:@"enabled"] boolValue] : YES;
     global = [settings objectForKey:@"global"] ? [[settings objectForKey:@"global"] boolValue] : NO;
 
-    // "daynight" (défaut), "joycon" ou "joycon2" (modes Nintendo Switch)
+    // "daynight" (défaut), "joycon" / "joycon2" (modes Nintendo Switch) ou "simple" (couleurs perso)
     NSString *mode = [settings objectForKey:@"mode"];
     if ([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"joycon"]) {
         switchMode = 1;
     } else if ([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"joycon2"]) {
         switchMode = 2;
+    } else if ([mode isKindOfClass:[NSString class]] && [mode isEqualToString:@"simple"]) {
+        switchMode = 3;
     } else {
         switchMode = 0;
     }
+
+    // couleurs du mode "simple"
+    [SimpleSwitch applyPrefs:settings];
 }
 
 %ctor {
@@ -221,6 +229,9 @@ static UIView *FindViewOfClass(UIView *view, Class cls) {
     UIView *theView = FindViewOfClass(self.contentView, [DayNightSwitch class]);
     if (!theView) {
         theView = FindViewOfClass(self.contentView, [JoyConSwitch class]);
+    }
+    if (!theView) {
+        theView = FindViewOfClass(self.contentView, [SimpleSwitch class]);
     }
     if ([theView respondsToSelector:@selector(dns_disableAnimations)]) {
         [(UIView<DNSSwitchLike> *)theView dns_disableAnimations];
