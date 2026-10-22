@@ -58,7 +58,7 @@ static NSString *PrefixForKey(NSString *key) {
 /// - les réglages de couleur : seulement en mode "Simple"
 /// - "Color 2" et le type de dégradé : seulement si "Gradient" est activé
 /// - le menu d'angle : seulement si "Gradient" est activé et que le type est "Linear"
-- (NSArray *)visibleSpecifiers {
+- (NSMutableArray *)visibleSpecifiers {
     BOOL simple = [[self currentValueForKey:@"mode"] isEqual:@"simple"];
 
     NSMutableArray *visible = [NSMutableArray array];
