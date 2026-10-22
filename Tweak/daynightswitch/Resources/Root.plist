@@ -28,7 +28,7 @@
 			<key>label</key>
 			<string>Style</string>
 			<key>footerText</key>
-			<string>Nintendo Switch</string>
+			<string>Change mode</string>
 		</dict>
 		<dict>
 			<key>cell</key>
@@ -41,16 +41,164 @@
 			<string>mode</string>
 			<key>validTitles</key>
 			<array>
-				<string>Jour / Nuit</string>
-				<string>Joy-Con</string>
-				<string>Joy-Con 2</string>
+				<string>day/night</string>
+				<string>Nintendo</string>
+				<string>Nintendo ... 2</string>
+				<string>Simple</string>
 			</array>
 			<key>validValues</key>
 			<array>
 				<string>daynight</string>
 				<string>joycon</string>
 				<string>joycon2</string>
+				<string>simple</string>
 			</array>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Enabled part</string>
+			<key>footerText</key>
+			<string>Modify the properties of the enabled part of the switch. Color 2 is for the gradient mode.</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>onGradient</string>
+			<key>label</key>
+			<string>Gradient</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>cellClass</key>
+			<string>DNSColorCell</string>
+			<key>default</key>
+			<string>#34C759</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>onColor1</string>
+			<key>label</key>
+			<string>Color</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>cellClass</key>
+			<string>DNSColorCell</string>
+			<key>default</key>
+			<string>#00C7BE</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>onColor2</string>
+			<key>label</key>
+			<string>Color 2</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Disabled part</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>offGradient</string>
+			<key>label</key>
+			<string>Gradient</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>cellClass</key>
+			<string>DNSColorCell</string>
+			<key>default</key>
+			<string>#E9E9EA</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>offColor1</string>
+			<key>label</key>
+			<string>Color</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>cellClass</key>
+			<string>DNSColorCell</string>
+			<key>default</key>
+			<string>#C7C7CC</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>offColor2</string>
+			<key>label</key>
+			<string>Color 2</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Button</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>knobGradient</string>
+			<key>label</key>
+			<string>Gradient</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>cellClass</key>
+			<string>DNSColorCell</string>
+			<key>default</key>
+			<string>#FFFFFF</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>knobColor1</string>
+			<key>label</key>
+			<string>Color</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSStaticTextCell</string>
+			<key>cellClass</key>
+			<string>DNSColorCell</string>
+			<key>default</key>
+			<string>#E5E5EA</string>
+			<key>defaults</key>
+			<string>de.finngaida.daynightswitch</string>
+			<key>key</key>
+			<string>knobColor2</string>
+			<key>label</key>
+			<string>Color 2</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string></string>
 		</dict>
 		<dict>
 			<key>action</key>
@@ -75,7 +223,7 @@
 			<key>cell</key>
 			<string>PSButtonCell</string>
 			<key>label</key>
-			<string>Fixed with ♥ by SaaS</string>
+			<string>Fixed with ♥ "by" SaaS</string>
 			<key>action</key>
 			<string>support</string>
 		</dict>
@@ -87,7 +235,7 @@
 			<string>About</string>
 			<key>footerText</key>
 			<string>Copyright ⓒ 2016 Finn Gaida
-Copyright ⓒ 2025 OwnGoal Studio
+Copyright ⓒ 2025 OwnGoal Studio
 Copyright ⓒ 2026 SaaS</string>
 		</dict>
 		<dict>
