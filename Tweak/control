@@ -1,6 +1,6 @@
 Package: de.finngaida.daynightswitch
 Name: Slippery Switch
-Depends: firmware (>= 14.0), mobilesubstrate
+Depends: firmware (>= 14.0), mobilesubstrate, com.pizzasdu83.slipperyassets
 Version: 1.2
 Architecture: iphoneos-arm
 Description: Add some style to your switches

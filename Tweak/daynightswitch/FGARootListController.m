@@ -21,6 +21,18 @@ static NSString *PrefixForKey(NSString *key) {
     return nil;
 }
 
+/// Image du dossier commun aux tweaks Slippery (paquet com.pizzasdu83.slipperyassets).
+/// Renvoie nil si le paquet n'est pas installé : la ligne s'affiche alors simplement sans icône.
+static UIImage *SharedIcon(NSString *name) {
+    static NSBundle *bundle;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        NSString *path = [NSString stringWithUTF8String:jbroot("/Library/Application Support/SlipperyAssets.bundle")];
+        bundle = [NSBundle bundleWithPath:path];
+    });
+    return [UIImage imageNamed:name inBundle:bundle compatibleWithTraitCollection:nil];
+}
+
 @implementation FGARootListController {
     /// Tous les réglages du plist, dans l'ordre (la liste affichée en est un sous-ensemble)
     NSArray<PSSpecifier *> *_allSpecifiers;
@@ -38,6 +50,15 @@ static NSString *PrefixForKey(NSString *key) {
                 NSString *key = [specifier propertyForKey:@"key"];
                 if (key) {
                     _specifiersByKey[key] = specifier;
+                }
+
+                // les lignes avec "sharedIcon" prennent leur image dans le dossier commun
+                NSString *iconName = [specifier propertyForKey:@"sharedIcon"];
+                if (iconName) {
+                    UIImage *icon = SharedIcon(iconName);
+                    if (icon) {
+                        [specifier setProperty:icon forKey:@"iconImage"];
+                    }
                 }
             }
         }
@@ -149,6 +170,14 @@ static NSString *PrefixForKey(NSString *key) {
 
 - (void)thesource {
     [self openURL:[NSURL URLWithString:@"https://github.com/finngaida/DayNightSwitch"]];
+}
+
+- (void)openButterfly {
+    [self openURL:[NSURL URLWithString:@"https://youtu.be/dtCZMge7oHQ"]];
+}
+
+- (void)openDiscord {
+    [self openURL:[NSURL URLWithString:@"https://discord.gg/cHuKAXeQ7W"]];
 }
 
 - (void)support {
