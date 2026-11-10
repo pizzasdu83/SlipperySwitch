@@ -16,6 +16,9 @@ DayNightSwitch_CFLAGS += -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 
+before-package::
+	$(ECHO_NOTHING)echo "Icon: file:///Library/PreferenceBundles/DayNightSwitch.bundle/icno.png" >> "$(THEOS_STAGING_DIR)/DEBIAN/control"$(ECHO_END)
+	
 after-install::
 	install.exec "killall -9 SpringBoard backboardd"
 
