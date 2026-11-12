@@ -8,7 +8,6 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME := DayNightSwitch
 
 DayNightSwitch_FILES += Tweak.xm
-DayNightSwitch_RESOURCE_FILES += icno.png
 DayNightSwitch_FILES += DayNightSwitch.m
 DayNightSwitch_FILES += JoyConSwitch.m
 DayNightSwitch_FILES += SimpleSwitch.m
