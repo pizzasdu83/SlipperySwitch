@@ -161,7 +161,7 @@ static UIImage *SharedIcon(NSString *name) {
 }
 
 - (void)mysource {
-    [self openURL:[NSURL URLWithString:@"https://github.com/pizzasdu83/DayNightSwitchGlass"]];
+    [self openURL:[NSURL URLWithString:@"https://github.com/pizzasdu83/SlipperySwitch"]];
 }
 
 - (void)asource {
