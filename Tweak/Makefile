@@ -17,11 +17,11 @@ DayNightSwitch_CFLAGS += -fobjc-arc
 include $(THEOS_MAKE_PATH)/tweak.mk
 
 ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
-ICON_PATH := /var/jb/Library/PreferenceBundles/DayNightSwitch.bundle/icon.png
+ICON_PATH := /var/jb/Library/PreferenceBundles/DayNightSwitch.bundle/icon@3x.png
 else ifeq ($(THEOS_PACKAGE_SCHEME),roothide)
-ICON_PATH := /var/jb/Library/PreferenceBundles/DayNightSwitch.bundle/icon.png
+ICON_PATH := /var/jb/Library/PreferenceBundles/DayNightSwitch.bundle/icon@3x.png
 else
-ICON_PATH := /Library/PreferenceBundles/DayNightSwitch.bundle/icon.png
+ICON_PATH := /Library/PreferenceBundles/DayNightSwitch.bundle/icon@3x.png
 endif
 
 before-package::
