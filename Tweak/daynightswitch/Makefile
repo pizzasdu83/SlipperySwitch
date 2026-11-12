@@ -7,7 +7,6 @@ BUNDLE_NAME := DayNightSwitch
 
 DayNightSwitch_FILES += FGARootListController.m
 DayNightSwitch_FILES += DNSColorCell.m
-DayNightSwitch_RESOURCE_FILES += Resources/icno.png
 DayNightSwitch_CFLAGS += -fobjc-arc
 DayNightSwitch_INSTALL_PATH += /Library/PreferenceBundles
 DayNightSwitch_FRAMEWORKS += UIKit
